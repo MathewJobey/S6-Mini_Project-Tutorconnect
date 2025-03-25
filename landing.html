@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TutorConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Base Styles */
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      color: #1a202c;
+      transition: all 0.4s ease;
+      overflow-x: hidden;
+    }
+
+    .dark-mode {
+      background-color: #0a0c10;
+      color: #e2e8f0;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Header and Hero Section */
+    .hero-section {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      background: linear-gradient(135deg, #f6f8fc 0%, #edf2f7 100%);
+      overflow: hidden;
+    }
+
+    .dark-mode .hero-section {
+      background: linear-gradient(135deg, #0f172a 0%, #0a0c10 100%);
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      font-size: 5rem;
+      font-weight: 700;
+      margin: 0;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 1s ease forwards;
+    }
+
+    .logo span:first-child {
+      color: #4299e1;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-content {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease 0.3s forwards;
+    }
+
+    .hero-content h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: #2d3748;
+    }
+
+    .dark-mode .hero-content h2 {
+      color: #e2e8f0;
+    }
+
+    .hero-content p {
+      font-size: 1.2rem;
+      color: #4a5568;
+      margin-bottom: 2rem;
+    }
+
+    .dark-mode .hero-content p {
+      color: #a0aec0;
+    }
+
+    /* Button Styles */
+    .btn {
+      display: inline-block;
+      background-color: #4299e1;
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(66, 153, 225, 0.2);
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .btn:hover {
+      background-color: #3182ce;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 8px rgba(66, 153, 225, 0.3);
+    }
+
+    .dark-mode .btn {
+      box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+    }
+
+    .dark-mode .btn:hover {
+      box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+    }
+
+    .login-options {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      width: 100%;
+    }
+
+/* Here are the corrected button styles - replace the existing button styles in your CSS with these: */
+
+.btn-student {
+  background-color: #4299e1;
+}
+
+.btn-teacher {
+  background-color: #6b46c1;
+}
+
+/* Light mode hover states */
+.btn-student:hover {
+  background-color: #3182ce;
+}
+
+.btn-teacher:hover {
+  background-color: #553c9a;
+}
+
+/* Dark mode base states */
+.dark-mode .btn-student {
+  background-color: #3182ce;
+}
+
+.dark-mode .btn-teacher {
+  background-color: #553c9a;
+}
+
+/* Dark mode hover states */
+.dark-mode .btn-student:hover {
+  background-color: #2c5282;
+}
+
+.dark-mode .btn-teacher:hover {
+  background-color: #44337a;
+}
+    /* Theme Toggle */
+    .toggle-theme {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 50px;
+      height: 50px;
+      border: 2px solid #1a202c;
+      border-radius: 50%;
+      background-color: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.5rem;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    .dark-mode .toggle-theme {
+      border-color: #e2e8f0;
+      background-color: #1a1f2e;
+    }
+
+    .dark-mode .toggle-theme:hover {
+      background-color: #2d3748;
+      border-color: #4299e1;
+    }
+
+    /* Path Section and Features */
+    .path-section,
+    .features {
+      padding: 5rem 0;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      padding: 0 1rem;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .dark-mode .card {
+      background-color: #1a1f2e;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      border: 1px solid #2d3748;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .dark-mode .card:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+      border: 1px solid #4299e1;
+    }
+
+    .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .dark-mode h3 {
+      color: #e2e8f0;
+    }
+
+    .dark-mode p {
+      color: #a0aec0;
+    }
+
+    /* Animation Class */
+    .fade-in {
+      animation: fadeInUp 1s ease forwards;
+    }
+
+    /* From Uiverse.io by absoluteSTrange */
+    .btn-admin {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 0;
+      background-color: rgb(255, 56, 86);
+      letter-spacing: 1.5px;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      box-shadow: rgb(201, 46, 70) 0px 5px 0px 0px;
+      color: hsl(0, 0%, 100%);
+      cursor: pointer;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    .btn-admin:hover {
+      box-shadow: rgb(201, 46, 70) 0px 3px 0px 0px;
+    }
+
+    .btn-admin:active {
+      background-color: rgb(255, 56, 86);
+      box-shadow: rgb(201, 46, 70) 0px 0px 0px 0px;
+      transform: translateY(3px);
+      transition: 200ms;
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-theme" onclick="toggleTheme()">🌙</button>
+  <button class="btn-admin" onclick="location.href='admin.html'">Admin</button>
+
+  <section class="hero-section">
+    <header>
+      <h1 class="logo">
+        <span>Tutor</span><span>Connect</span>
+      </h1>
+    </header>
+
+    <div class="hero-content">
+      <h2>Teach. Learn. Earn. Grow!</h2>
+      <p>Join our community of passionate educators and eager learners.</p>
+      <div id="login-options">
+        <button class="btn" onclick="showLoginOptions()">Get Started</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <section class="path-section">
+      <h2 class="section-title">Choose Your Path</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="icon">🎓</div>
+          <h3>Become a Teacher</h3>
+          <p>Share your expertise and earn while making a difference. Set your own schedule and rates.</p>
+        </div>
+        <div class="card">
+          <div class="icon">💻</div>
+          <h3>Part-Time Student</h3>
+          <p>Balance your work and studies with flexible learning options tailored to your schedule.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🎯</div>
+          <h3>Full-Time Learner</h3>
+          <p>Access quality education from verified tutors across various subjects and skills.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="features">
+      <h2 class="section-title">Why Choose TutorConnect?</h2>
+      <div class="grid">
+        <div class="card">
+          <div class="icon">📋</div>
+          <h3>Smart Navigation</h3>
+          <p>Find the perfect tutor quickly with our advanced search and filtering system.</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔔</div>
+          <h3>Real-time Updates</h3>
+          <p>Stay informed with our smart notification system for schedule changes and updates.</p>
+        </div>
+        <div class="card">
+          <div class="icon">❤️</div>
+          <h3>Flexible Opportunities</h3>
+          <p>Whether you're teaching or learning, grow on your own terms.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Theme Toggle
+    let darkMode = false;
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark-mode', darkMode);
+      document.querySelector('.toggle-theme').textContent = darkMode ? '☀️' : '🌙';
+      localStorage.setItem('darkMode', darkMode);
+    }
+
+    // Set initial theme based on local storage
+    if (localStorage.getItem('darkMode') === 'true') {
+      darkMode = true;
+      document.body.classList.add('dark-mode');
+      document.querySelector('.toggle-theme').textContent = '☀️';
+    } else {
+      document.querySelector('.toggle-theme').textContent = '🌙';
+    }
+
+    // Login Options
+    function showLoginOptions() {
+      document.getElementById('login-options').innerHTML = `
+        <div class="login-options">
+          <a href="/student_dashboard/auth_stud.html" class="btn btn-student">Login as Student</a>
+          <a href="auth_teach.html" class="btn btn-teacher">Login as Teacher</a>
+        </div>
+      `;
+    }
+
+    // Intersection Observer for animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-in');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    // Observe all section titles and cards
+    document.querySelectorAll('.section-title, .card').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<aside class="sidebar">
+    <div class="logo">
+        <i class="fas fa-graduation-cap" style="font-size: 2rem;"></i>
+        <h1>TutorConnect</h1>
+    </div>
+    <div class="profile-section">
+        <img
+            src="https://ui-avatars.com/api/?name=Student&background=random"
+            alt="Profile"
+            id="profileImage"
+        />
+        <div class="profile-info">
+            <h3 id="studentName">Loading...</h3>
+            <p id="studentEmail">Loading...</p>
+        </div>
+    </div>
+    <nav class="nav-links">
+        <a href="#" class="nav-link active">
+            <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-chalkboard"></i> My Courses
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-user-tie"></i> My Tutors
+        </a>
+        <a href="#" class="nav-link">
+            <i class="fas fa-calendar-alt"></i> Schedule
+        </a>
+        <a href="../student_profile_setup.html?edit=true" class="nav-link" onclick="editProfile()">
+            <i class="fas fa-user-edit"></i> Edit Profile
+        </a>
+    </nav>
+    <button class="logout-btn" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+</aside>

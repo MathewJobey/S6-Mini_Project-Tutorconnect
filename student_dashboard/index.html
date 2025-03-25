@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard - TutorConnect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/student_dashboard/css/style.css" />
+  </head>
+  <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()">
+      <span id="themeIcon">🌙</span>
+    </button>
+
+    <div class="dashboard">
+      <!-- Sidebar will be loaded here -->
+      <div id="sidebar-container"></div>
+
+      <main class="main-content">
+        <!-- Header component -->
+        <div id="header-container"></div>
+
+        <!-- Profile Overview component -->
+        <div id="profile-overview-container"></div>
+
+        <!-- Courses Grid component -->
+        <div id="courses-grid-container"></div>
+        
+        <!-- Tutors Grid component -->
+        <div id="tutors-grid-container"></div>
+      </main>
+    </div>
+
+    <!-- JavaScript Modules -->
+    <script src="/student_dashboard/js/theme.js"></script>
+    <script src="/student_dashboard/js/auth.js"></script>
+    <script src="/student_dashboard/js/profile.js"></script>
+    <script src="/student_dashboard/js/courses.js"></script>
+    <script src="/student_dashboard/js/tutors.js"></script>
+    <script src="/student_dashboard/js/utils.js"></script>
+    <script src="/student_dashboard/js/main.js"></script>
+  </body>
+</html>

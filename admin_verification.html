@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Table</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --header-height: 80px;
+            --container-padding: 40px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode {
+            background: #0a0c10;
+            color: #e2e8f0;
+        }
+
+        .container {
+            padding: calc(var(--header-height) + 20px) var(--container-padding) var(--container-padding);
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .dark-mode .container {
+            background: var(--bg-primary-dark);
+        }
+
+        .header-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--container-padding);
+            z-index: 1000;
+        }
+
+        .dark-mode .header-area {
+            background: var(--bg-primary-dark);
+            border-bottom: 1px solid var(--border-color-dark);
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title .admin-text {
+            color: #3b82f6;  /* Bright blue */
+            font-weight: 600;
+        }
+
+        .header-title .separator {
+            color: var(--text-secondary);
+            margin: 0 4px;
+        }
+
+        .dark-mode .header-title {
+            color: var(--text-primary-dark);
+        }
+
+        .dark-mode .header-title .admin-text {
+            color: #60a5fa;  /* Lighter blue for dark mode */
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 2rem;
+        }
+
+        .dark-mode h1 {
+            color: #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-spacing: 0;
+            border-collapse: separate;
+            overflow: hidden;
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            text-align: left;
+            padding: 1.25rem 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dark-mode th {
+            background: #2d3748;
+            color: #e2e8f0;
+        }
+
+        td {
+            padding: 1.25rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            vertical-align: middle;
+        }
+
+        .dark-mode td {
+            border-top: 1px solid #4a5568;
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode tr:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        a {
+            color: #4299e1;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .verify {
+            background: #38a169;
+            color: white;
+        }
+
+        .verify:hover {
+            background: #2f855a;
+        }
+
+        .reject {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .reject:hover {
+            background: #c53030;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            min-width: 100px;
+            gap: 4px;
+            text-transform: capitalize;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #FCD34D, #FBBF24);
+            color: #92400E;
+        }
+
+        .status-verified {
+            background: linear-gradient(135deg, #34D399, #10B981);
+            color: #064E3B;
+        }
+
+        .status-rejected {
+            background: linear-gradient(135deg, #F87171, #EF4444);
+            color: #7F1D1D;
+        }
+
+        .dark-mode .status-pending {
+            background: #B45309;
+            color: #FCD34D;
+        }
+
+        .dark-mode .status-verified {
+            background: #065F46;
+            color: #34D399;
+        }
+
+        .dark-mode .status-rejected {
+            background: #991B1B;
+            color: #F87171;
+        }
+
+        .toggle-theme {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border: 2px solid #1a202c;
+            border-radius: 50%;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dark-mode .toggle-theme {
+            border-color: #e2e8f0;
+            background-color: #1a1f2e;
+        }
+
+        .dark-mode .toggle-theme:hover {
+            background-color: #2d3748;
+            border-color: #4299e1;
+        }
+
+        .logout {
+            position: relative;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 0;
+            background-color: rgb(255, 56, 86);
+            letter-spacing: 1.5px;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            box-shadow: rgb(201, 46, 70) 0px 5px 0px 0px;
+            color: hsl(0, 0%, 100%);
+            cursor: pointer;
+        }
+
+        .logout:hover {
+            box-shadow: rgb(201, 46, 70) 0px 3px 0px 0px;
+        }
+
+        .logout:active {
+            background-color: rgb(255, 56, 86);
+            box-shadow: rgb(201, 46, 70) 0px 0px 0px 0px;
+            transform: translateY(3px);
+            transition: 200ms;
+        }
+
+        /* Tab Styles */
+        .tabs {
+            margin-bottom: 30px;
+            display: inline-flex;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            margin: 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .tab-btn:not(.active):hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Enhanced Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.show {
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: relative;
+            background: var(--bg-primary);
+            margin: 15% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease-out;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .modal.show .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dark-mode .modal-header {
+            border-bottom-color: var(--border-color-dark);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .dark-mode .modal-header h2 {
+            color: var(--text-primary-dark);
+        }
+
+        .close {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close:hover {
+            background: var(--accent-primary);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        .dark-mode .close {
+            background: var(--bg-secondary-dark);
+            color: var(--text-primary-dark);
+        }
+        
+        .dark-mode .close:hover {
+            background: var(--accent-primary);
+            color: white;
+        }
+        
+        #teacherDetails {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            max-height: 60vh;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        #teacherDetails::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #teacherDetails::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 4px;
+        }
+
+        #teacherDetails::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+
+        .detail-item {
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dark-mode .detail-item {
+            background: var(--bg-secondary-dark);
+            border-color: var(--border-color-dark);
+        }
+
+        .detail-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-item strong {
+            color: var(--accent-primary);
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .dark-mode .detail-item strong {
+            color: var(--text-primary-dark);
+        }
+
+        /* Table Styles */
+        .verification-table table,
+        .verification-log table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background: var(--bg-primary);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .verification-table table,
+        .dark-mode .verification-log table {
+            background: var(--bg-secondary-dark);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dark-mode th,
+        .dark-mode td {
+            border-bottom: 1px solid var(--border-color-dark);
+            color: var(--text-primary-dark);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .dark-mode th {
+            background: var(--bg-primary-dark);
+            color: var(--text-primary-dark);
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .dark-mode tr:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Status Badge Styles */
+        .status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .status-pending {
+            background: #FCD34D;
+            color: #92400E;
+        }
+
+        .status-verified {
+            background: #34D399;
+            color: #064E3B;
+        }
+
+        .status-rejected {
+            background: #F87171;
+            color: #7F1D1D;
+        }
+
+        .dark-mode .status-pending {
+            background: #B45309;
+            color: #FCD34D;
+        }
+
+        .dark-mode .status-verified {
+            background: #065F46;
+            color: #34D399;
+        }
+
+        .dark-mode .status-rejected {
+            background: #991B1B;
+            color: #F87171;
+        }
+
+        /* Action Button Styles */
+        .details-btn {
+            padding: 0.5rem 1.25rem;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #4f46e5, #6366f1);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0 auto;
+        }
+
+        .details-btn i {
+            font-size: 0.875rem;
+        }
+
+        .details-btn:hover {
+            background: linear-gradient(135deg, #4338ca, #4f46e5);
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark-mode .details-btn {
+            background: #6366f1;
+            color: white;
+        }
+
+        .dark-mode .details-btn:hover {
+            background: #4f46e5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Log Table Specific Styles */
+        .verification-log {
+            margin-top: 2rem;
+        }
+
+        .verification-log .remarks {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Empty State Styles */
+        .no-requests {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .dark-mode .no-requests {
+            color: var(--text-secondary-dark);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-top: 20px;
+        }
+
+        /* Update table styles */
+        .verification-table {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            margin-top: 30px;
+            border: 1px solid var(--border-color);
+        }
+
+        .dark-mode .verification-table {
+            background: var(--bg-secondary-dark);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Center specific columns */
+        td:first-child,
+        th:first-child {
+            text-align: center;
+            width: 80px;
+        }
+
+        /* Status column */
+        td:nth-child(5),
+        th:nth-child(5) {
+            text-align: center;
+        }
+
+        /* Actions column */
+        td:last-child,
+        th:last-child {
+            text-align: center;
+            min-width: 200px;
+        }
+
+        /* Enhanced Table Styles */
+        tr:nth-child(even) {
+            background: var(--bg-secondary);
+        }
+
+        .dark-mode tr:nth-child(even) {
+            background: var(--bg-secondary-dark);
+        }
+
+        /* Dark mode tab styles */
+        .dark-mode .tabs {
+            background: var(--bg-secondary-dark);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .dark-mode .tab-btn {
+            color: var(--text-primary-dark);
+        }
+
+        .dark-mode .tab-btn.active {
+            background: #60a5fa;
+            box-shadow: 0 2px 4px rgba(96, 165, 250, 0.3);
+        }
+
+        .dark-mode .tab-btn:not(.active):hover {
+            background: rgba(96, 165, 250, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="header-area">
+        <h1 class="header-title">
+            <span class="admin-text">Admin</span>
+            <span class="separator">|</span>
+            Verification Table
+        </h1>
+        <div class="header-controls">
+            <button class="logout" onclick="confirmLogout()">Logout</button>
+            <button class="toggle-theme" onclick="toggleTheme()">🌙</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('pending')">
+                    <i class="fas fa-clock"></i> Pending
+                </button>
+                <button class="tab-btn" onclick="showTab('log')">
+                    <i class="fas fa-history"></i> History
+                </button>
+            </div>
+            
+            <div id="pendingTab" class="tab-content active">
+                <div class="verification-table">
+                    <table id="verificationTable">
+                        <thead>
+                            <tr>
+                                <th>Sl No.</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="requestsTableBody">
+                            <!-- Requests will be loaded here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="logTab" class="tab-content">
+                <div class="verification-log">
+                    <table id="logTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logTableBody">
+                            <!-- Log entries will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Details Modal -->
+        <div id="detailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Teacher Details</h2>
+                    <button class="close">&times;</button>
+                </div>
+                <div id="teacherDetails">
+                    <!-- Teacher details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Theme Toggle
+        let darkMode = localStorage.getItem('darkMode') === 'true';
+
+        function toggleTheme() {
+            darkMode = !darkMode;
+            document.body.classList.toggle('dark-mode', darkMode);
+            document.querySelector('.toggle-theme').textContent = darkMode ? '☀️' : '🌙';
+            localStorage.setItem('darkMode', darkMode);
+        }
+
+        // Set initial theme based on local storage
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.toggle-theme').textContent = '☀️';
+        } else {
+            document.querySelector('.toggle-theme').textContent = '🌙';
+        }
+
+        // Confirm Logout
+        function confirmLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                sessionStorage.removeItem('adminLoggedIn');
+                window.location.href = 'landing.html';
+            }
+        }
+
+        // Prevent navigation back to admin page after logout
+        if (!sessionStorage.getItem('adminLoggedIn')) {
+            window.location.href = 'landing.html';
+        }
+
+        // Load verification requests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVerificationRequests();
+        });
+
+        async function loadVerificationRequests() {
+            try {
+                // Get admin token from session storage
+                const adminToken = sessionStorage.getItem('adminToken');
+                
+                if (!adminToken) {
+                    throw new Error('Admin not authenticated');
+                }
+
+                const response = await fetch('http://localhost:5000/api/admin/verification-requests', {
+                    headers: {
+                        'Authorization': adminToken
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to fetch verification requests');
+                }
+
+                const requests = await response.json();
+                displayVerificationRequests(requests);
+            } catch (error) {
+                console.error('Error:', error);
+                if (error.message === 'Admin not authenticated') {
+                    alert('Please login as admin first');
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                alert('Failed to load verification requests');
+            }
+        }
+
+        function displayVerificationRequests(requests) {
+            const tableBody = document.getElementById('requestsTableBody');
+            if (!requests || requests.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-requests">No pending verification requests</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = requests.map((request, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${request.name}</td>
+                    <td>${request.email}</td>
+                    <td>${request.phone}</td>
+                    <td>
+                        <span class="status status-${request.verificationStatus.toLowerCase()}">
+                            <i class="fas ${
+                                request.verificationStatus === 'Pending' ? 'fa-clock' :
+                                request.verificationStatus === 'Verified' ? 'fa-check-circle' :
+                                'fa-times-circle'
+                            }"></i>
+                            ${request.verificationStatus}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="details-btn" onclick="showDetails('${request.email}')" id="details-${request.email}">
+                            <i class="fas fa-eye"></i>
+                            View Details
+                        </button>
+                    </td>
+                    <td class="actions">
+                        <button onclick="approveTeacher('${request.email}')" 
+                            class="verify" ${request.verificationStatus !== 'Pending' ? 'disabled' : ''}>
+                            <i class="fas fa-check"></i>
+                            Approve
+                        </button>
+                        <button onclick="rejectTeacher('${request.email}')" 
+                            class="reject" ${request.verificationStatus !== 'Pending' ? 'disabled' : ''}>
+                            <i class="fas fa-times"></i>
+                            Decline
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function approveTeacher(email) {
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/verify-teacher', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': sessionStorage.getItem('adminToken')
+                    },
+                    body: JSON.stringify({
+                        email,
+                        status: 'Verified',
+                        remarks: 'Approved by admin'
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to approve teacher');
+                
+                // Reload the requests
+                loadVerificationRequests();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to approve teacher');
+            }
+        }
+
+        async function rejectTeacher(email) {
+            const remarks = prompt('Please provide a reason for rejection:');
+            if (!remarks) return;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/verify-teacher', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': sessionStorage.getItem('adminToken')
+                    },
+                    body: JSON.stringify({
+                        email,
+                        status: 'Rejected',
+                        remarks
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to reject teacher');
+                
+                // Reload the requests
+                loadVerificationRequests();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to reject teacher');
+            }
+        }
+
+        // Show/Hide Tabs
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName === 'log') {
+                loadVerificationLog();
+            }
+        }
+        
+        // Load Verification Log
+        async function loadVerificationLog() {
+            try {
+                const response = await fetch('http://localhost:5000/api/admin/verification-log');
+                const logEntries = await response.json();
+                
+                const logTable = document.getElementById('logTableBody');
+                if (!logEntries || logEntries.length === 0) {
+                    logTable.innerHTML = `
+                        <tr>
+                            <td colspan="5" class="no-requests">No verification history available</td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                logTable.innerHTML = logEntries.map(entry => `
+                    <tr>
+                        <td>${new Date(entry.updatedAt).toLocaleString()}</td>
+                        <td>${entry.name}</td>
+                        <td>${entry.email}</td>
+                        <td>
+                            <span class="status status-${entry.status.toLowerCase()}">
+                                ${entry.status}
+                            </span>
+                        </td>
+                        <td class="remarks" title="${entry.remarks || 'No remarks'}">
+                            ${entry.remarks || '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading log:', error);
+                document.getElementById('logTableBody').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="no-requests">Failed to load verification history</td>
+                    </tr>
+                `;
+            }
+        }
+        
+        // Show Teacher Details
+        async function showDetails(email) {
+            const button = document.getElementById(`details-${email}`);
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+            button.disabled = true;
+
+            try {
+                // Make sure email is properly encoded for URLs
+                const encodedEmail = encodeURIComponent(email);
+                const response = await fetch(`http://localhost:5000/api/admin/teacher-details/${encodedEmail}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    const text = await response.text();
+                    try {
+                        const errorData = JSON.parse(text);
+                        throw new Error(errorData.error || 'Failed to fetch teacher details');
+                    } catch (e) {
+                        console.error('Server response:', text);
+                        throw new Error('Failed to fetch teacher details. Please try again.');
+                    }
+                }
+
+                const teacher = await response.json();
+                console.log('Received teacher details:', teacher);
+
+                if (!teacher || !teacher.name) {
+                    throw new Error('Invalid teacher data received');
+                }
+
+                // Group details into sections
+                const sections = {
+                    'Personal Information': [
+                        { label: 'Name', value: teacher.name || 'N/A' },
+                        { label: 'Email', value: teacher.userId || email },
+                        { label: 'Phone', value: teacher.phone || 'N/A' },
+                        { label: 'Gender', value: teacher.gender || 'N/A' },
+                        { label: 'Age', value: teacher.age ? `${teacher.age} years` : 'N/A' },
+                        { label: 'Date of Birth', value: teacher.dob ? new Date(teacher.dob).toLocaleDateString() : 'N/A' }
+                    ],
+                    'Professional Details': [
+                        { label: 'Experience', value: teacher.experience ? `${teacher.experience} years` : 'N/A' },
+                        { label: 'Subjects', value: teacher.subjects?.length > 0 ? teacher.subjects.join(', ') : 'N/A' },
+                        { label: 'Verification Status', value: teacher.verificationStatus || 'Pending' }
+                    ],
+                    'Documents': [
+                        { label: 'Aadhar Number', value: teacher.aadhar || 'N/A' },
+                        { label: 'Profile Created', value: teacher.createdAt ? new Date(teacher.createdAt).toLocaleString() : 'N/A' }
+                    ]
+                };
+
+                let detailsHTML = '';
+                for (const [section, items] of Object.entries(sections)) {
+                    detailsHTML += `
+                        <div class="details-section">
+                            <h3>${section}</h3>
+                            <div class="details-grid">
+                                ${items.map((item, index) => `
+                                    <div class="detail-item" style="animation-delay: ${index * 0.1}s">
+                                        <strong>${item.label}</strong>
+                                        ${item.label === 'Verification Status' 
+                                            ? `<span class="status status-${(item.value || '').toLowerCase()}">${item.value}</span>`
+                                            : item.value}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                document.getElementById('teacherDetails').innerHTML = detailsHTML;
+                const modal = document.getElementById('detailsModal');
+                modal.style.display = 'block';
+                void modal.offsetWidth;
+                modal.classList.add('show');
+
+            } catch (error) {
+                console.error('Error loading details:', error);
+                alert(`Error: ${error.message}`);
+            } finally {
+                button.innerHTML = '<i class="fas fa-eye"></i> View Details';
+                button.disabled = false;
+            }
+        }
+        
+        // Close Modal
+        document.querySelector('.close').onclick = closeModal;
+        
+        function closeModal() {
+            const modal = document.getElementById('detailsModal');
+            modal.classList.remove('show');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('detailsModal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
