@@ -15,3 +15,4 @@ const hashPassword = async (password) => {
 // Example usage
 const password = "SecurePassword123";
 hashPassword(password);
+//This is a test
