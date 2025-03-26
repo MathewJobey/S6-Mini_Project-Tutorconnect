@@ -476,7 +476,6 @@
                 window.location.href = '/student_dashboard/auth_stud.html';
                 return;
             }
-
             const isEditMode = localStorage.getItem('editMode') === 'true';
             if (isEditMode) {
                 loadExistingProfile();
@@ -784,3 +783,29 @@ if (!response.ok) {
             }
         }
     </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const dobInput = document.getElementById('dob');
+        const ageInput = document.getElementById('age');
+
+        dobInput.addEventListener('input', () => {
+            const dob = new Date(dobInput.value);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
+            // Ensure age is within the valid range
+            if (age < 13 || age > 100) {
+                alert('Age must be between 13 and 100.');
+                ageInput.value = '';
+            } else {
+                ageInput.value = age;
+            }
+        });
+    });
+</script>
+</body>
+</html>
