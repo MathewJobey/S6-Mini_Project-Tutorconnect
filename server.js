@@ -251,9 +251,9 @@ app.post("/api/teacher/profile", async (req, res) => {
 // Create/Update student profile
 app.post("/api/student/profile", async (req, res) => {
   try {
-    const { email, name, gender, age, dob, phone, grade, subjects, address, parentName, parentPhone, latitude, longitude } = req.body;
+    const { email, name, gender, age, dob, phone, educationLevel, subjects, address, parentName, parentPhone, latitude, longitude } = req.body;
 
-    if (!email || !name || !gender || !age || !dob || !phone || !grade || !subjects || !address || !parentName || !parentPhone || !latitude || !longitude) {
+    if (!email || !name || !gender || !age || !dob || !phone || !educationLevel || !subjects || !address || !parentName || !parentPhone || !latitude || !longitude) {
       return res.status(400).json({
         success: false,
         error: "All required fields must be filled"
@@ -267,7 +267,7 @@ app.post("/api/student/profile", async (req, res) => {
       age: parseInt(age),
       dob: new Date(dob),
       phone,
-      grade,
+      educationLevel,
       subjects,
       address,
       parentName,
@@ -865,7 +865,7 @@ app.get("/api/admin/student-details/:email", async (req, res) => {
       gender: student.gender || 'N/A',
       age: student.age || 'N/A',
       dob: student.dob || new Date(),
-      grade: student.grade || 'N/A',
+      educationLevel: student.educationLevel || 'N/A',
       subjects: student.subjects || [],
       parentName: student.parentName || 'N/A',
       parentPhone: student.parentPhone || 'N/A',
@@ -894,7 +894,7 @@ app.get("/api/admin/students", async (req, res) => {
       name: student.name,
       email: student.userId,
       phone: student.phone,
-      grade: student.grade,
+      educationLevel: student.educationLevel,
       subjects: student.subjects,
       createdAt: student.createdAt
     }));

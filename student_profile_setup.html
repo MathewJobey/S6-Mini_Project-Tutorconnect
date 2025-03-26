@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
             --bg-secondary: #f3f4f6;
             --text-primary: #111827;
             --text-secondary: #4b5563;
-            --accent-primary: #3b82f6; /* Blue accent */
+            --accent-primary: #3b82f6;
+            /* Blue accent */
             --accent-hover: #2563eb;
             --border-color: #e5e7eb;
             --bg-primary-dark: #1f2937;
@@ -93,6 +95,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -115,6 +118,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -161,7 +165,8 @@
             font-weight: 600;
             color: var(--accent-primary);
             padding: 0.75rem 0.5rem;
-            background: rgba(59, 130, 246, 0.05); /* Blue background for optgroup */
+            background: rgba(59, 130, 246, 0.05);
+            /* Blue background for optgroup */
         }
 
         .subjects-select option {
@@ -179,7 +184,8 @@
         }
 
         .subjects-select option:hover {
-            background: rgba(59, 130, 246, 0.05); /* Blue hover background */
+            background: rgba(59, 130, 246, 0.05);
+            /* Blue hover background */
         }
 
         /* Add helper text for multiple select */
@@ -234,6 +240,7 @@
         button:active {
             transform: translateY(0);
         }
+
         .submit-btn {
             width: 100%;
             margin-top: 2rem;
@@ -264,6 +271,7 @@
                 grid-template-columns: 1fr;
             }
         }
+
         /* Update theme toggle to match landing page */
         .toggle-theme {
             position: fixed;
@@ -322,6 +330,7 @@
         .subjects-select::-webkit-scrollbar-thumb:hover {
             background: var(--accent-hover);
         }
+
         #checkAddressBtn {
             margin-left: 10px;
             padding: 0.5rem 1rem;
@@ -337,6 +346,7 @@
         #checkAddressBtn:hover {
             background-color: #45a049;
         }
+
         .input-group {
             display: flex;
             align-items: center;
@@ -344,6 +354,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <button class="toggle-theme" onclick="toggleTheme()">
@@ -364,18 +375,18 @@
                 </div>
                 <div class="form-group">
                     <label for="dob">Date of Birth*</label>
-                    <input type="date" id="dob" name ="dob" required>
+                    <input type="date" id="dob" name="dob" required>
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="phone">Phone Number*</label>
-                <input type="tel" id="phone" name ="phone" required placeholder="Enter your phone number">
+                <input type="tel" id="phone" name="phone" required placeholder="Enter your phone number">
             </div>
 
             <div class="form-group">
                 <label for="educationLevel">Educational Level*</label>
-                <select id="educationLevel" name ="educationLevel" required>
+                <select id="educationLevel" name="educationLevel" required>
                     <option value="">Select Level</option>
                     <option value="high-school">High School</option>
                     <option value="undergraduate">Undergraduate</option>
@@ -384,7 +395,7 @@
                 </select>
             </div>
 
-             <div class="form-group">
+            <div class="form-group">
                 <label for="gender">Gender*</label>
                 <select id="gender" name="gender" required>
                     <option value="">Select Gender</option>
@@ -394,14 +405,15 @@
                 </select>
             </div>
 
-              <div class="form-group">
+            <div class="form-group">
                 <label for="parentName">Parent Name*</label>
-                <input type="text" id="parentName" name ="parentName" required placeholder="Enter your Parent name">
+                <input type="text" id="parentName" name="parentName" required placeholder="Enter your Parent name">
             </div>
 
-               <div class="form-group">
+            <div class="form-group">
                 <label for="parentPhone">Parent Phone*</label>
-                <input type="tel" id="parentPhone" name ="parentPhone" required placeholder="Enter your parent phone number">
+                <input type="tel" id="parentPhone" name="parentPhone" required
+                    placeholder="Enter your parent phone number">
             </div>
 
             <div class="form-group">
@@ -439,19 +451,20 @@
             </div>
             <div class="form-group">
                 <label for="address">Address*</label>
-                 <div class="input-group">
-                      <input type="text" id="address" name ="address" required placeholder="Enter your address manually">
-                      <button type="button" id="checkAddressBtn">Check Address</button>
-                 </div>            
-            <input type="hidden" id="latitude"  name="latitude" required/>
-            <input type="hidden" id="longitude" name = "longitude" required/>
-            <button type="button" id="useMyLocationBtn">
-               Use My Location
-            </button>
+                <div class="input-group">
+                    <input type="text" id="address" name="address" required placeholder="Enter your address manually">
+                    <button type="button" id="checkAddressBtn">Check Address</button>
+                </div>
+                <input type="hidden" id="latitude" name="latitude" required />
+                <input type="hidden" id="longitude" name="longitude" required />
+                <button type="button" id="useMyLocationBtn">
+                    Use My Location
+                </button>
             </div>
             <div class="form-group">
                 <label for="bio">Additional Learning Preferences or Bio (Optional)</label>
-                <textarea id="bio" rows="4" name= "bio" placeholder="Describe your learning preferences or a short bio"></textarea>
+                <textarea id="bio" rows="4" name="bio"
+                    placeholder="Describe your learning preferences or a short bio"></textarea>
             </div>
 
             <button type="submit" class="submit-btn">Complete Profile</button>
@@ -479,7 +492,7 @@
             const isEditMode = localStorage.getItem('editMode') === 'true';
             if (isEditMode) {
                 loadExistingProfile();
-                 document.querySelector('h2').textContent = 'Edit Your Profile';
+                document.querySelector('h2').textContent = 'Edit Your Profile';
             }
 
             const savedTheme = localStorage.getItem('theme');
@@ -557,39 +570,44 @@
             event.preventDefault();
 
             try {
+                // Retrieve email from localStorage
                 const email = localStorage.getItem('userEmail');
                 if (!email) {
+                    alert('Please log in first');
                     window.location.href = '/student_dashboard/auth_stud.html';
                     return;
                 }
+
+                // Get existing profile data if in edit mode
                 const originalProfile = localStorage.getItem('originalProfile');
                 const oldData = originalProfile ? JSON.parse(originalProfile) : {};
 
+                // Collect form data
                 const formElements = {
                     name: document.getElementById('name').value,
-                    age: document.getElementById('age').value,
+                    age: parseInt(document.getElementById('age').value, 10), // Convert to number
                     dob: document.getElementById('dob').value,
                     phone: document.getElementById('phone').value,
-                     gender: document.getElementById('gender').value, // ADDED TO REQUEST
+                    gender: document.getElementById('gender').value,
                     educationLevel: document.getElementById('educationLevel').value,
-                     parentName: document.getElementById('parentName').value,
-                       parentPhone: document.getElementById('parentPhone').value,
-                    subjects: Array.from(document.getElementById('subjects').selectedOptions)
-                        .map(option => option.value),
+                    parentName: document.getElementById('parentName').value,
+                    parentPhone: document.getElementById('parentPhone').value,
+                    subjects: Array.from(document.getElementById('subjects').selectedOptions).map(option => option.value),
                     address: document.getElementById('address').value,
                     latitude: document.getElementById('latitude').value,
                     longitude: document.getElementById('longitude').value,
-                    bio: document.getElementById('bio').value,
+                    bio: document.getElementById('bio').value || '' // Optional field
                 };
 
-        console.log("Form element data:", formElements) // Check what is there!
+                console.log('Form elements collected:', formElements);
 
+                // Ensure coordinates are available
                 if (formElements.address && (!formElements.latitude || !formElements.longitude)) {
                     try {
                         const { lat, lng } = await geocodeAddress(formElements.address);
                         formElements.latitude = lat;
                         formElements.longitude = lng;
-                         document.getElementById('latitude').value = lat;
+                        document.getElementById('latitude').value = lat;
                         document.getElementById('longitude').value = lng;
                         alert(`Location captured from address:\nLatitude: ${lat}\nLongitude: ${lng}`);
                     } catch (geocodeError) {
@@ -600,71 +618,54 @@
                 }
 
                 if (!formElements.latitude || !formElements.longitude) {
-                    alert("Latitude and Longitude are required.  Please use 'Use My Location' or check your address.");
+                    alert("Latitude and Longitude are required. Please use 'Use My Location' or check your address.");
                     return;
                 }
 
-                const changedFields = {};
-                Object.keys(formElements).forEach(key => {
-                    if (key === 'subjects') {
-                        if (JSON.stringify(formElements[key]) !== JSON.stringify(oldData[key])) {
-                            changedFields[key] = formElements[key];
-                        }
-                    } else if (formElements[key] !== oldData[key]) {
-                            changedFields[key] = formElements[key];
-
-                    }
-                });
-
-                if (Object.keys(changedFields).length === 0) {
-                    if (!confirm('No changes detected. Do you want to continue anyway?')) {
-                        return;
-                    }
-                }
+                // Prepare profile data for submission
                 const profileData = {
                     email,
-                    ...oldData,
-                    ...formElements, //THIS WILL ADD EVERYTHING
-
+                    ...formElements,
                     location: {
                         type: "Point",
                         coordinates: [
                             parseFloat(formElements.longitude),
                             parseFloat(formElements.latitude)
                         ]
-                    },
-                    address: formElements.address
+                    }
                 };
 
-                    console.log("Sending profile data:", profileData);
-                // Handle profile picture upload (optional)
-const response = await fetch('http://localhost:5000/api/student/profile', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Authorization': email
-    },
-    body: JSON.stringify(profileData)
-});
+                console.log('Profile data to be sent:', profileData);
 
-if (!response.ok) {
-    const errorData = await response.json();
-    console.error('Error response from server:', errorData); // Log the error response
-    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-}
+                // Send data to the server
+                const response = await fetch('http://localhost:5000/api/student/profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': email // Ensure this matches server expectation
+                    },
+                    body: JSON.stringify(profileData)
+                });
 
-
-                const result = await response.json();
-                if (result.success) {
-                    window.location.href = '/student_dashboard/index.html';
-                } else {
-                    alert(result.error || 'Failed to update profile');
+                // Handle server response
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Server error response:', errorData);
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
                 }
 
+                const result = await response.json();
+                console.log('Server response:', result);
+                if (result.success) {
+                    alert('Profile successfully set up!');
+                    window.location.href = '/student_dashboard/index.html';
+                } else {
+                    throw new Error(result.error || 'Unknown error from server');
+                }
 
             } catch (error) {
-                console.error('Profile setup error:', error);
-                alert('Failed to set up profile. Please try again.');
+                console.error('Profile submission error:', error.message);
+                alert(`Failed to set up profile: ${error.message}. Please try again.`);
             }
         }
 
@@ -673,26 +674,26 @@ if (!response.ok) {
         // }
 
         async function sendProfileData(profileData) {
-             const response = await fetch('http://localhost:5000/api/student/profile', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': profileData.email
-                    },
-                    body: JSON.stringify(profileData)
-                });
+            const response = await fetch('http://localhost:5000/api/student/profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': profileData.email
+                },
+                body: JSON.stringify(profileData)
+            });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-                }
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
 
-                const result = await response.json();
-                if (result.success) {
-                    window.location.href = '/student_dashboard/index.html'; //Make sure the html is here
-                } else {
-                    alert(result.error || 'Failed to update profile');
-                }
+            const result = await response.json();
+            if (result.success) {
+                window.location.href = '/student_dashboard/index.html'; //Make sure the html is here
+            } else {
+                alert(result.error || 'Failed to update profile');
+            }
         }
 
         document.getElementById('studentProfileForm').addEventListener('submit', submitProfile);
@@ -722,7 +723,7 @@ if (!response.ok) {
                 const response = await fetch(`http://localhost:5000/api/student/profile/${email}`, {
                     headers: {
                         'Authorization': email,
-                        'Content-Type':'application/json'
+                        'Content-Type': 'application/json'
                     }
                 });
 
@@ -736,9 +737,9 @@ if (!response.ok) {
                 document.getElementById('dob').value = profile.dob ? profile.dob.split('T')[0] : '';
                 document.getElementById('phone').value = profile.phone || '';
                 document.getElementById('educationLevel').value = profile.educationLevel || '';
-                  document.getElementById('gender').value = profile.gender || '';
-                    document.getElementById('parentName').value = profile.parentName || '';
-                    document.getElementById('parentPhone').value = profile.parentPhone || '';
+                document.getElementById('gender').value = profile.gender || '';
+                document.getElementById('parentName').value = profile.parentName || '';
+                document.getElementById('parentPhone').value = profile.parentPhone || '';
                 document.getElementById('address').value = profile.address || '';
                 document.getElementById('latitude').value = profile.location?.coordinates[1] || '';
                 document.getElementById('longitude').value = profile.location?.coordinates[0] || '';
@@ -751,7 +752,7 @@ if (!response.ok) {
                         option.selected = profile.subjects.includes(option.value);
                     });
                 }
-                 if (profile.profilePicture) {
+                if (profile.profilePicture) {
                     const profilePictureInput = document.getElementById('profilePicture');
                     const dataTransfer = new DataTransfer();
                     const blob = await fetch(profile.profilePicture).then(r => r.blob());
@@ -784,28 +785,29 @@ if (!response.ok) {
         }
     </script>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const dobInput = document.getElementById('dob');
-        const ageInput = document.getElementById('age');
+        document.addEventListener('DOMContentLoaded', () => {
+            const dobInput = document.getElementById('dob');
+            const ageInput = document.getElementById('age');
 
-        dobInput.addEventListener('input', () => {
-            const dob = new Date(dobInput.value);
-            const today = new Date();
-            let age = today.getFullYear() - dob.getFullYear();
-            const monthDiff = today.getMonth() - dob.getMonth();
-            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-                age--;
-            }
+            dobInput.addEventListener('input', () => {
+                const dob = new Date(dobInput.value);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
 
-            // Ensure age is within the valid range
-            if (age < 13 || age > 100) {
-                alert('Age must be between 13 and 100.');
-                ageInput.value = '';
-            } else {
-                ageInput.value = age;
-            }
+                // Ensure age is within the valid range
+                if (age < 13 || age > 100) {
+                    alert('Age must be between 13 and 100.');
+                    ageInput.value = '';
+                } else {
+                    ageInput.value = age;
+                }
+            });
         });
-    });
-</script>
+    </script>
 </body>
+
 </html>
