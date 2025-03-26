@@ -7,6 +7,39 @@ const path = require("path");
 const { body, validationResult } = require('express-validator');
 
 const app = express();
+const multer = require('multer');
+const fs = require('fs');
+
+const uploadDir = 'uploads';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    const email = req.user ? req.user.email : 'unknown'; // Use req.user.email set by checkAuth
+    cb(null, `${email}-${uniqueSuffix}${ext}`);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 500 * 1024 }, // 500KB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only images and PDFs are allowed.'));
+    }
+  }
+});
+app.use('/uploads', express.static('uploads'));
 
 // CORS configuration
 app.use(cors({
@@ -23,10 +56,24 @@ app.use(express.urlencoded({ extended: true }));
 
 // Add error handling middleware
 app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+          return res.status(400).json({
+              success: false,
+              error: 'File size exceeds 500KB limit'
+          });
+      }
+  }
+  if (err.message === 'Invalid file type. Only images and PDFs are allowed.') {
+      return res.status(400).json({
+          success: false,
+          error: err.message
+      });
+  }
   console.error('Server error:', err);
   res.status(500).json({
-    success: false,
-    error: 'Internal server error'
+      success: false,
+      error: 'Internal server error'
   });
 });
 
@@ -247,96 +294,125 @@ app.post("/api/teacher/profile", async (req, res) => {
     });
   }
 });
-
-// Create/Update student profile
-app.post("/api/student/profile", async (req, res) => {
-  try {
-    const { email, name, gender, age, dob, phone, educationLevel, subjects, address, parentName, parentPhone, latitude, longitude } = req.body;
-
-    if (!email || !name || !gender || !age || !dob || !phone || !educationLevel || !subjects || !address || !parentName || !parentPhone || !latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        error: "All required fields must be filled"
-      });
-    }
-
-    const studentData = {
-      userId: email,
-      name,
-      gender,
-      age: parseInt(age),
-      dob: new Date(dob),
-      phone,
-      educationLevel,
-      subjects,
-      address,
-      parentName,
-      parentPhone,
-      location: {
-        type: "Point",
-        coordinates: [parseFloat(longitude), parseFloat(latitude)]
-      },
-      profileComplete: true,
-      lastUpdated: new Date()
-    };
-
-    const existingProfile = await db.collection("students").findOne({ userId: email });
-
-    if (existingProfile) {
-         delete studentData.createdAt; //prevent from updating
-         await db.collection("students").updateOne({ userId: email }, { $set: studentData });
-          res.status(200).json({  //Updated to 200
-          success: true,
-          message: "Profile updated successfully"
-        });
-    } else {
-      studentData.createdAt = new Date(); // Set createdAt only when creating
-      await db.collection("students").insertOne(studentData);
-       res.status(201).json({  //Updated to 201
-          success: true,
-          message: "Profile created successfully"
-        });
-    }
-
-
-  } catch (error) {
-    console.error("Student profile save error:", error);
-    res.status(500).json({
+// Ensure checkAuth is defined before routes
+const checkAuth = async (req, res, next) => {
+  const email = req.headers.authorization;
+  if (!email) {
+    return res.status(401).json({
       success: false,
-      error: "Failed to save student profile"
+      error: "Unauthorized"
     });
   }
-});
 
-// Auth middleware
-const checkAuth = async (req, res, next) => {
-    const email = req.headers.authorization;
-    if (!email) {
-        return res.status(401).json({
-            success: false,
-            error: "Unauthorized"
-        });
+  try {
+    const user = await db.collection("users").findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: "User not found"
+      });
     }
-
-    try {
-        const user = await db.collection("users").findOne({ email });
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                error: "User not found"
-            });
-        }
-        //Check role
-        req.user = user;
-        next();
-    } catch (error) {
-        console.error('Auth error:', error);
-        return res.status(500).json({
-            success: false,
-            error: "Server error during authentication"
-        });
-    }
+    req.user = user; // Set req.user with the full user object
+    req.body.email = user.email; // Explicitly set req.body.email for Multer
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error during authentication"
+    });
+  }
 };
+
+// Create/Update student profile
+app.post("/api/student/profile", checkAuth, upload.single('identificationCard'), async (req, res) => {
+  try {
+      const {
+          email, name, gender, age, dob, phone, aadhar, educationLevel, subjects,
+          address, parentName, parentPhone, latitude, longitude, bio
+      } = req.body;
+
+      const identificationCard = req.file ? req.file.path : null;
+
+      if (!email || !name || !gender || !age || !dob || !phone || !aadhar ||
+          !educationLevel || !subjects || !address || !parentName || !parentPhone ||
+          !latitude || !longitude) {
+          return res.status(400).json({
+              success: false,
+              error: "All required fields must be filled"
+          });
+      }
+
+      if (!validateAadhar(aadhar)) {
+          return res.status(400).json({
+              success: false,
+              error: "Invalid Aadhar number. Must be 12 digits."
+          });
+      }
+
+      const subjectsArray = Array.isArray(subjects) ? subjects : [subjects];
+      const studentData = {
+          userId: email,
+          name,
+          gender,
+          age: parseInt(age, 10),
+          dob: new Date(dob),
+          phone,
+          aadhar,
+          educationLevel,
+          subjects: subjectsArray,
+          address,
+          parentName,
+          parentPhone,
+          location: {
+              type: "Point",
+              coordinates: [parseFloat(longitude), parseFloat(latitude)]
+          },
+          identificationCard,
+          bio: bio || '',
+          profileComplete: true,
+          lastUpdated: new Date()
+      };
+
+      const existingProfile = await db.collection("students").findOne({ userId: email });
+
+      if (existingProfile) {
+          const updateData = { ...studentData };
+          if (req.file) {
+              updateData.identificationCard = req.file.path;
+          } else {
+              updateData.identificationCard = existingProfile.identificationCard;
+          }
+          delete updateData.createdAt;
+          await db.collection("students").updateOne({ userId: email }, { $set: updateData });
+          res.status(200).json({
+              success: true,
+              message: "Profile updated successfully"
+          });
+      } else {
+          if (!req.file) {
+              return res.status(400).json({
+                  success: false,
+                  error: "Identification card is required"
+              });
+          }
+          studentData.identificationCard = req.file.path;
+          studentData.createdAt = new Date();
+          await db.collection("students").insertOne(studentData);
+          res.status(201).json({
+              success: true,
+              message: "Profile created successfully"
+          });
+      }
+
+  } catch (error) {
+      console.error("Student profile save error:", error);
+      res.status(500).json({
+          success: false,
+          error: "Failed to save student profile"
+      });
+  }
+});
 
 // Get teacher profile
 app.get("/api/teacher/profile/:email", checkAuth, async (req, res) => {
