@@ -106,15 +106,14 @@ async function connectDB() {
 
     console.log("✅ Connected to MongoDB!");
 
-    // Create required indexes - NOW after we know connection is good.
+    // Create required indexes
     await db.collection("teachers").createIndex({ userId: 1 }, { unique: true });
     await db.collection("students").createIndex({ userId: 1 }, { unique: true });
     await db.collection("sessions").createIndex({ token: 1 }, { unique: true });
     await db.collection("verification_requests").createIndex({ email: 1 }, { unique: true });
     await db.collection("sessions").createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // 24 hours
-    await db.collection("teachers").createIndex({ location: "2dsphere" }); //Index for location queries
-
-
+    await db.collection("teachers").createIndex({ location: "2dsphere" }); // Index for location queries
+    await db.collection("verification_log").createIndex({ email: 1 }); // Index for verification log
 
     return true;
   } catch (error) {
@@ -352,58 +351,62 @@ app.post("/api/student/profile", checkAuth, upload.single('identificationCard'),
 
       const subjectsArray = Array.isArray(subjects) ? subjects : [subjects];
       const studentData = {
-          userId: email,
-          name,
-          gender,
-          age: parseInt(age, 10),
-          dob: new Date(dob),
-          phone,
-          aadhar,
-          educationLevel,
-          subjects: subjectsArray,
-          address,
-          parentName,
-          parentPhone,
-          location: {
-              type: "Point",
-              coordinates: [parseFloat(longitude), parseFloat(latitude)]
-          },
-          identificationCard,
-          bio: bio || '',
-          profileComplete: true,
-          lastUpdated: new Date()
-      };
-
-      const existingProfile = await db.collection("students").findOne({ userId: email });
-
-      if (existingProfile) {
-          const updateData = { ...studentData };
-          if (req.file) {
-              updateData.identificationCard = req.file.path;
-          } else {
-              updateData.identificationCard = existingProfile.identificationCard;
-          }
-          delete updateData.createdAt;
-          await db.collection("students").updateOne({ userId: email }, { $set: updateData });
-          res.status(200).json({
-              success: true,
-              message: "Profile updated successfully"
-          });
-      } else {
-          if (!req.file) {
-              return res.status(400).json({
-                  success: false,
-                  error: "Identification card is required"
-              });
-          }
-          studentData.identificationCard = req.file.path;
-          studentData.createdAt = new Date();
-          await db.collection("students").insertOne(studentData);
-          res.status(201).json({
-              success: true,
-              message: "Profile created successfully"
-          });
-      }
+        userId: email,
+        name,
+        gender,
+        age: parseInt(age, 10),
+        dob: new Date(dob),
+        phone,
+        aadhar,
+        educationLevel,
+        subjects: subjectsArray,
+        address,
+        parentName,
+        parentPhone,
+        location: {
+            type: "Point",
+            coordinates: [parseFloat(longitude), parseFloat(latitude)]
+        },
+        identificationCard,
+        bio: bio || '',
+        profileComplete: true,
+        verificationStatus: "Pending", // Add this field for new profiles
+        lastUpdated: new Date()
+    };
+    
+    // Check if profile exists
+    const existingProfile = await db.collection("students").findOne({ userId: email });
+    
+    if (existingProfile) {
+        const updateData = { ...studentData };
+        if (req.file) {
+            updateData.identificationCard = req.file.path;
+        } else {
+            updateData.identificationCard = existingProfile.identificationCard;
+        }
+        // Preserve existing verificationStatus during updates
+        delete updateData.verificationStatus;
+        delete updateData.createdAt;
+        await db.collection("students").updateOne({ userId: email }, { $set: updateData });
+        res.status(200).json({
+            success: true,
+            message: "Profile updated successfully"
+        });
+    } else {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: "Identification card is required"
+            });
+        }
+        studentData.identificationCard = req.file.path;
+        studentData.createdAt = new Date();
+        await db.collection("students").insertOne(studentData);
+        res.status(201).json({
+            success: true,
+            message: "Profile created successfully"
+        });
+    }
 
   } catch (error) {
       console.error("Student profile save error:", error);
@@ -915,7 +918,76 @@ app.get("/api/admin/teacher-details/:email", async (req, res) => {
     });
   }
 });
+// Fetch all pending student verification requests
+app.get("/api/admin/student-verification-requests", async (req, res) => {
+  try {
+    const adminToken = req.headers.authorization;
+    if (!adminToken || adminToken !== "admin-token") {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
 
+    const students = await db.collection("students")
+      .find({ verificationStatus: "Pending" })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const formattedStudents = students.map(student => ({
+      userId: student.userId,
+      name: student.name,
+      phone: student.phone,
+      school: student.educationLevel, // Using educationLevel as "school" for display
+      grade: student.grade || "N/A",
+      verificationStatus: student.verificationStatus,
+      createdAt: student.createdAt
+    }));
+
+    res.json(formattedStudents);
+  } catch (error) {
+    console.error("Error fetching student verification requests:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Verify or reject a student
+app.post("/api/admin/verify-student", async (req, res) => {
+  try {
+    const adminToken = req.headers.authorization;
+    if (!adminToken || adminToken !== "admin-token") {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    const { email, status, remarks } = req.body;
+    if (!email || !status) {
+      return res.status(400).json({ success: false, error: "Email and status are required" });
+    }
+
+    const student = await db.collection("students").findOne({ userId: email });
+    if (!student) {
+      return res.status(404).json({ success: false, error: "Student not found" });
+    }
+
+    // Update student verification status
+    await db.collection("students").updateOne(
+      { userId: email },
+      { $set: { verificationStatus: status, remarks: remarks || "", updatedAt: new Date() } }
+    );
+
+    // Log the verification action in verification_log
+    await db.collection("verification_log").insertOne({
+      email,
+      name: student.name,
+      role: "Student",
+      status,
+      remarks: remarks || "No remarks",
+      updatedAt: new Date(),
+    });
+
+    res.json({ success: true, message: "Student verification updated" });
+  } catch (error) {
+    console.error("Error verifying student:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
 // Get student details for admin
 app.get("/api/admin/student-details/:email", async (req, res) => {
   try {
@@ -1119,24 +1191,12 @@ app.post("/api/teacher/update-request", async (req, res) => {
 // Get verification log
 app.get("/api/admin/verification-log", async (req, res) => {
   try {
-    const log = await db.collection("teachers")
-      .find({
-        verificationStatus: { $in: ["Verified", "Rejected"] }
-      })
-      .sort({ updatedAt: -1, createdAt: -1 })
+    const logs = await db.collection("verification_log")
+      .find()
+      .sort({ updatedAt: -1 })
       .toArray();
 
-    const formattedLog = log.map(entry => ({
-      name: entry.name,
-      email: entry.userId,
-      status: entry.verificationStatus,
-      remarks: entry.remarks,
-      updatedAt: entry.updatedAt || entry.createdAt,
-      subjects: entry.subjects,
-      experience: entry.experience
-    }));
-
-    res.json(formattedLog);
+    res.json(logs);
   } catch (error) {
     console.error("Error fetching verification log:", error);
     res.status(500).json({

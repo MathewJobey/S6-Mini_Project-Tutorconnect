@@ -597,7 +597,7 @@
 
         const form = document.getElementById('studentProfileForm');
         const formData = new FormData(form);
-        formData.append('email', email); // Ensure email is included
+        formData.append('email', email);
 
         if (!formData.get('latitude') || !formData.get('longitude')) {
             const address = formData.get('address');
@@ -620,20 +620,32 @@
             }
         }
 
+        console.log('Sending profile data to server...');
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
+
         const response = await fetch('http://localhost:5000/api/student/profile', {
             method: 'POST',
             headers: {
                 'Authorization': email
             },
-            body: formData
+            body: formData,
+            signal: controller.signal
         });
+
+        clearTimeout(timeoutId);
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
 
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Error response from server:', errorData);
             throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
         }
 
         const result = await response.json();
+        console.log('Response data:', result);
+
         if (result.success) {
             alert('Profile successfully set up!');
             window.location.href = '/student_dashboard/index.html';
@@ -643,7 +655,11 @@
 
     } catch (error) {
         console.error('Profile submission error:', error.message);
-        alert(`Failed to set up profile: ${error.message}. Please try again.`);
+        if (error.name === 'AbortError') {
+            alert('Request timed out. Please check your network connection and try again.');
+        } else {
+            alert(`Failed to set up profile: ${error.message}. Please try again.`);
+        }
     }
 }
         // async function sendProfileData(profileData) {
