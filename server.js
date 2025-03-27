@@ -757,26 +757,48 @@ app.post("/api/teacher/verification-request", async (req, res) => {
 // Get all verification requests
 app.get("/api/admin/verification-requests", async (req, res) => {
   try {
-    // Get all teachers who are not verified
-    const unverifiedTeachers = await db.collection("teachers")
-      .find({
-        $or: [
-          { verificationStatus: "Not Verified" },
-          { verificationStatus: "Pending" }
-        ]
-      })
+    // Verify admin token (using a simple check for now, as seen in other admin routes)
+    const adminToken = req.headers.authorization;
+    if (!adminToken || adminToken !== "admin-token") {
+      return res.status(401).json({ success: false, error: "Unauthorized" });
+    }
+
+    // Fetch pending students
+    const pendingStudents = await db.collection("students")
+      .find({ verificationStatus: "Pending" })
       .sort({ createdAt: -1 })
       .toArray();
 
-    // Format the response
-    const requests = unverifiedTeachers.map(teacher => ({
+    // Fetch pending teachers
+    const pendingTeachers = await db.collection("teachers")
+      .find({ verificationStatus: "Pending" })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    // Format the response for students
+    const studentsFormatted = pendingStudents.map(student => ({
+      email: student.userId,
+      name: student.name,
+      phone: student.phone,
+      verificationStatus: student.verificationStatus || "Pending",
+      createdAt: student.createdAt,
+      remarks: student.remarks || '',
+      type: "student"
+    }));
+
+    // Format the response for teachers
+    const teachersFormatted = pendingTeachers.map(teacher => ({
       email: teacher.userId,
       name: teacher.name,
       phone: teacher.phone,
       verificationStatus: teacher.verificationStatus || "Pending",
       createdAt: teacher.createdAt,
-      remarks: teacher.remarks || ''
+      remarks: teacher.remarks || '',
+      type: "teacher"
     }));
+
+    // Combine the lists
+    const requests = [...studentsFormatted, ...teachersFormatted];
 
     res.json(requests);
   } catch (error) {
