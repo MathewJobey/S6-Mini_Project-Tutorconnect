@@ -212,7 +212,6 @@ app.post("/api/teacher/check-profile", async (req, res) => {
 app.post("/api/student/check-profile", async (req, res) => {
   try {
     const { email } = req.body;
-
     if (!email) {
       return res.status(400).json({
         success: false,
@@ -220,17 +219,18 @@ app.post("/api/student/check-profile", async (req, res) => {
       });
     }
 
-    const profile = await db.collection("students").findOne({ userId: email });
+    const studentProfile = await db.collection("students").findOne({ userId: email });
+    const exists = !!studentProfile;
 
     res.json({
       success: true,
-      exists: !!profile, // Return true if the profile exists, false otherwise
+      exists: exists,
     });
   } catch (error) {
-    console.error("Profile check error:", error);
+    console.error("Error checking profile:", error);
     res.status(500).json({
       success: false,
-      error: "Server error checking profile",
+      error: "Server error",
     });
   }
 });
@@ -604,10 +604,15 @@ app.post("/api/student/login", async (req, res) => {
       });
     }
 
-    console.log('Successful student login for:', email);
+    // Check for profile completion
+    const studentProfile = await db.collection("students").findOne({ userId: email });
+    const profileComplete = studentProfile && studentProfile.profileComplete;
+
+    console.log('Successful student login for:', email, 'Profile Complete:', profileComplete);
     res.json({
       success: true,
-      email: user.email
+      email: user.email,
+      profileComplete: profileComplete // Include profileComplete status
     });
   } catch (error) {
     console.error("Student login error:", error);
@@ -617,7 +622,6 @@ app.post("/api/student/login", async (req, res) => {
     });
   }
 });
-
 // Student Signup (Simplified with Role set)
 app.post("/api/student/signup", async (req, res) => {
   try {
