@@ -343,7 +343,48 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
   }
+  .course-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: var(--card-shadow);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    text-align: center;
+  }
   
+  body.dark-mode .course-card {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--border-color-dark);
+    box-shadow: var(--card-shadow-dark);
+  }
+  
+  .course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px -3px rgba(0, 0, 0, 0.15);
+  }
+  
+  .course-card h3 {
+    margin: 0 0 0.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  
+  body.dark-mode .course-card h3 {
+    color: var(--text-primary-dark);
+  }
+  
+  .course-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+  }
+  
+  body.dark-mode .course-card p {
+    color: var(--text-secondary-dark);
+  }
   .student-card {
     background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(10px);

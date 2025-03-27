@@ -4,7 +4,7 @@ function checkAuth() {
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     if (!email || !isLoggedIn) {
       localStorage.clear();
-      window.location.href = 'auth_teach.html';
+      window.location.href = '../auth_teach.html';
       return false;
     }
     return true;

@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadComponent('components/sidebar.html', 'sidebar-container');
     loadComponent('components/header.html', 'header-container');
     loadComponent('components/profileOverview.html', 'profile-overview-container');
-    loadComponent('components/coursesGrid.html', 'courses-grid-container');
+    loadComponent('student_dashboard/components/courseGrid.html', 'courses-grid-container');
     loadComponent('components/tutorsGrid.html', 'tutors-grid-container');
 });
 
