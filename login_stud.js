@@ -65,7 +65,7 @@ const initLogin = () => {
           window.location.href = "/student_dashboard/index.html";
         } else {
           console.log("Redirecting to profile setup");
-          window.location.href = "/stud_profile_setup.html";
+          window.location.href = "/student_profile_setup.html";
         }
   
       } catch (error) {
