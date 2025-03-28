@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Find Tutors</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 600px; width: 100%; }
+    .filter-container { margin: 10px 0; }
+    .teacher-popup { max-width: 200px; }
+  </style>
+</head>
+<body>
+  <div class="filter-container">
+    <label for="distance">Filter by Distance:</label>
+    <select id="distance">
+      <option value="500">500m</option>
+      <option value="1000">1km</option>
+      <option value="2000">2km</option>
+      <option value="all">All Teachers</option>
+    </select>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    let map;
+    let teacherMarkers = [];
+
+    async function initMap() {
+      const response = await fetch('/api/student/location', {
+        headers: { 'Authorization': localStorage.getItem('userEmail') }
+      });
+      const data = await response.json();
+      if (!data.success) {
+        alert('Could not fetch your location');
+        return;
+      }
+
+      const { latitude, longitude } = data.location;
+      map = L.map('map').setView([latitude, longitude], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(map);
+
+      L.marker([latitude, longitude]).addTo(map)
+        .bindPopup('Your Location').openPopup();
+
+      loadTeachers(latitude, longitude);
+    }
+
+    async function loadTeachers(latitude, longitude, maxDistance) {
+      const distance = maxDistance || document.getElementById('distance').value;
+      const response = await fetch('/api/student/nearby-teachers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('userEmail')
+        },
+        body: JSON.stringify({ latitude, longitude, maxDistance: distance === 'all' ? null : parseInt(distance) })
+      });
+      const data = await response.json();
+      if (!data.success) {
+        alert('Could not fetch teachers');
+        return;
+      }
+
+      teacherMarkers.forEach(marker => map.removeLayer(marker));
+      teacherMarkers = [];
+
+      data.teachers.forEach(teacher => {
+        const marker = L.marker([teacher.latitude, teacher.longitude]).addTo(map);
+        const popupContent = `
+          <div class="teacher-popup">
+            <strong>${teacher.name}</strong><br>
+            Age: ${teacher.age}<br>
+            Phone: ${teacher.phone}<br>
+            Email: ${teacher.email}<br>
+            Subjects: ${teacher.subjects.join(', ')}<br>
+            <button onclick="sendJoinRequest('${teacher.email}')">Join</button>
+          </div>
+        `;
+        marker.bindPopup(popupContent);
+        teacherMarkers.push(marker);
+      });
+    }
+
+    async function sendJoinRequest(teacherEmail) {
+      const response = await fetch('/api/student/join-teacher', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': localStorage.getItem('userEmail')
+        },
+        body: JSON.stringify({ teacherEmail })
+      });
+      const data = await response.json();
+      alert(data.message);
+    }
+
+    document.getElementById('distance').addEventListener('change', (e) => {
+      const { latitude, longitude } = map.getCenter();
+      loadTeachers(latitude, longitude, e.target.value);
+    });
+
+    document.addEventListener('DOMContentLoaded', initMap);
+  </script>
+</body>
+</html>

@@ -5,16 +5,18 @@ const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const path = require("path");
 const { body, validationResult } = require('express-validator');
-
-const app = express();
 const multer = require('multer');
 const fs = require('fs');
 
+const app = express();
+
+// Upload directory setup
 const uploadDir = 'uploads';
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
+// Multer storage configuration
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -27,6 +29,7 @@ const storage = multer.diskStorage({
   }
 });
 
+// Multer upload configuration
 const upload = multer({
   storage: storage,
   limits: { fileSize: 500 * 1024 }, // 500KB
@@ -39,22 +42,26 @@ const upload = multer({
     }
   }
 });
+
+// Serve uploads directory
 app.use('/uploads', express.static('uploads'));
 
 // CORS configuration
 app.use(cors({
-  origin: '*', // For development only.  CHANGE THIS IN PRODUCTION.
+  origin: '*', // For development only. CHANGE THIS IN PRODUCTION.
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Parse JSON bodies
+// Parse JSON and URL-encoded bodies
 app.use(express.json());
-// Parse URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Add error handling middleware
+// Serve static files from 'public' directory
+app.use(express.static('public'));
+
+// Error handling middleware
 app.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
       if (err.code === 'LIMIT_FILE_SIZE') {
@@ -77,7 +84,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Add request logging
+// Request logging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`);
   next();
@@ -113,7 +120,9 @@ async function connectDB() {
     await db.collection("verification_requests").createIndex({ email: 1 }, { unique: true });
     await db.collection("sessions").createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 }); // 24 hours
     await db.collection("teachers").createIndex({ location: "2dsphere" }); // Index for location queries
+    await db.collection("students").createIndex({ location: "2dsphere" }); // Added for students
     await db.collection("verification_log").createIndex({ email: 1 }); // Index for verification log
+    await db.collection("tutor_requests").createIndex({ studentId: 1, teacherId: 1 }); // Index for tutor requests
 
     return true;
   } catch (error) {
@@ -123,7 +132,7 @@ async function connectDB() {
   }
 }
 
-// Move the server start inside the connection callback
+// Start the server after connecting to the database
 connectDB().then(() => {
   const port = process.env.PORT || 5000;
   app.listen(port, () => {
@@ -144,7 +153,7 @@ connectDB().then(() => {
   process.exit(1);
 });
 
-// Add this validation function at the top of server.js
+// Validation functions
 function validatePhoneNumber(phone) {
   const phoneRegex = /^[0-9]{10}$/;
   return phoneRegex.test(phone);
@@ -155,6 +164,7 @@ function validateAadhar(aadhar) {
   return aadharRegex.test(aadhar);
 }
 
+// Reverse geocoding function
 async function reverseGeocode(latitude, longitude) {
   const apiKey = process.env.OPENCAGE_API_KEY; // Get API key from .env
   if (!apiKey) {
@@ -179,6 +189,35 @@ async function reverseGeocode(latitude, longitude) {
     throw error;
   }
 }
+
+// Authentication middleware
+const checkAuth = async (req, res, next) => {
+  const email = req.headers.authorization;
+  if (!email) {
+    return res.status(401).json({
+      success: false,
+      error: "Unauthorized"
+    });
+  }
+
+  try {
+    const user = await db.collection("users").findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+    req.user = user; // Set req.user with the full user object
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error during authentication"
+    });
+  }
+};
 
 // Teacher Profile Flow
 app.post("/api/teacher/check-profile", async (req, res) => {
@@ -263,28 +302,27 @@ app.post("/api/teacher/profile", async (req, res) => {
       },
       verificationStatus: "Pending",
       profileComplete: true,
+      students: [], // Initialize students array
       lastUpdated: new Date()
     };
 
     const existingProfile = await db.collection("teachers").findOne({ userId: email });
 
     if (existingProfile) {
-        delete teacherData.createdAt; //prevent from updating
-        await db.collection("teachers").updateOne({ userId: email }, { $set: teacherData });
-        res.status(200).json({  //Updated to 200
-          success: true,
-          message: "Profile updated successfully"
-        });
+      delete teacherData.createdAt; // Prevent updating createdAt
+      await db.collection("teachers").updateOne({ userId: email }, { $set: teacherData });
+      res.status(200).json({
+        success: true,
+        message: "Profile updated successfully"
+      });
     } else {
       teacherData.createdAt = new Date(); // Set createdAt only when creating
       await db.collection("teachers").insertOne(teacherData);
-       res.status(201).json({  //Updated to 201
-          success: true,
-          message: "Profile created successfully"
-        });
+      res.status(201).json({
+        success: true,
+        message: "Profile created successfully"
+      });
     }
-
-
   } catch (error) {
     console.error("Profile save error:", error);
     res.status(500).json({
@@ -293,127 +331,96 @@ app.post("/api/teacher/profile", async (req, res) => {
     });
   }
 });
-// Ensure checkAuth is defined before routes
-const checkAuth = async (req, res, next) => {
-  const email = req.headers.authorization;
-  if (!email) {
-    return res.status(401).json({
-      success: false,
-      error: "Unauthorized"
-    });
-  }
-
-  try {
-    const user = await db.collection("users").findOne({ email });
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        error: "User not found"
-      });
-    }
-    req.user = user; // Set req.user with the full user object
-    req.body.email = user.email; // Explicitly set req.body.email for Multer
-    next();
-  } catch (error) {
-    console.error('Auth error:', error);
-    return res.status(500).json({
-      success: false,
-      error: "Server error during authentication"
-    });
-  }
-};
 
 // Create/Update student profile
 app.post("/api/student/profile", checkAuth, upload.single('identificationCard'), async (req, res) => {
   try {
-      const {
-          email, name, gender, age, dob, phone, aadhar, educationLevel, subjects,
-          address, parentName, parentPhone, latitude, longitude, bio
-      } = req.body;
+    const {
+      email, name, gender, age, dob, phone, aadhar, educationLevel, subjects,
+      address, parentName, parentPhone, latitude, longitude, bio
+    } = req.body;
 
-      const identificationCard = req.file ? req.file.path : null;
+    const identificationCard = req.file ? req.file.path : null;
 
-      if (!email || !name || !gender || !age || !dob || !phone || !aadhar ||
-          !educationLevel || !subjects || !address || !parentName || !parentPhone ||
-          !latitude || !longitude) {
-          return res.status(400).json({
-              success: false,
-              error: "All required fields must be filled"
-          });
-      }
-
-      if (!validateAadhar(aadhar)) {
-          return res.status(400).json({
-              success: false,
-              error: "Invalid Aadhar number. Must be 12 digits."
-          });
-      }
-
-      const subjectsArray = Array.isArray(subjects) ? subjects : [subjects];
-      const studentData = {
-        userId: email,
-        name,
-        gender,
-        age: parseInt(age, 10),
-        dob: new Date(dob),
-        phone,
-        aadhar,
-        educationLevel,
-        subjects: subjectsArray,
-        address,
-        parentName,
-        parentPhone,
-        location: {
-            type: "Point",
-            coordinates: [parseFloat(longitude), parseFloat(latitude)]
-        },
-        identificationCard,
-        bio: bio || '',
-        profileComplete: true,
-        verificationStatus: "Pending", // Add this field for new profiles
-        lastUpdated: new Date()
-    };
-    
-    // Check if profile exists
-    const existingProfile = await db.collection("students").findOne({ userId: email });
-    
-    if (existingProfile) {
-        const updateData = { ...studentData };
-        if (req.file) {
-            updateData.identificationCard = req.file.path;
-        } else {
-            updateData.identificationCard = existingProfile.identificationCard;
-        }
-        // Preserve existing verificationStatus during updates
-        delete updateData.verificationStatus;
-        delete updateData.createdAt;
-        await db.collection("students").updateOne({ userId: email }, { $set: updateData });
-        res.status(200).json({
-            success: true,
-            message: "Profile updated successfully"
-        });
-    } else {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                error: "Identification card is required"
-            });
-        }
-        studentData.identificationCard = req.file.path;
-        studentData.createdAt = new Date();
-        await db.collection("students").insertOne(studentData);
-        res.status(201).json({
-            success: true,
-            message: "Profile created successfully"
-        });
+    if (!email || !name || !gender || !age || !dob || !phone || !aadhar ||
+      !educationLevel || !subjects || !address || !parentName || !parentPhone ||
+      !latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        error: "All required fields must be filled"
+      });
     }
 
-  } catch (error) {
-      console.error("Student profile save error:", error);
-      res.status(500).json({
-          success: false,
-          error: "Failed to save student profile"
+    if (!validateAadhar(aadhar)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid Aadhar number. Must be 12 digits."
       });
+    }
+
+    const subjectsArray = Array.isArray(subjects) ? subjects : [subjects];
+    const studentData = {
+      userId: email,
+      name,
+      gender,
+      age: parseInt(age, 10),
+      dob: new Date(dob),
+      phone,
+      aadhar,
+      educationLevel,
+      subjects: subjectsArray,
+      address,
+      parentName,
+      parentPhone,
+      location: {
+        type: "Point",
+        coordinates: [parseFloat(longitude), parseFloat(latitude)]
+      },
+      identificationCard,
+      bio: bio || '',
+      profileComplete: true,
+      verificationStatus: "Pending",
+      tutors: [], // Initialize tutors array
+      lastUpdated: new Date()
+    };
+
+    const existingProfile = await db.collection("students").findOne({ userId: email });
+
+    if (existingProfile) {
+      const updateData = { ...studentData };
+      if (req.file) {
+        updateData.identificationCard = req.file.path;
+      } else {
+        updateData.identificationCard = existingProfile.identificationCard;
+      }
+      delete updateData.verificationStatus;
+      delete updateData.createdAt;
+      await db.collection("students").updateOne({ userId: email }, { $set: updateData });
+      res.status(200).json({
+        success: true,
+        message: "Profile updated successfully"
+      });
+    } else {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: "Identification card is required"
+        });
+      }
+      studentData.identificationCard = req.file.path;
+      studentData.createdAt = new Date();
+      await db.collection("students").insertOne(studentData);
+      res.status(201).json({
+        success: true,
+        message: "Profile created successfully"
+      });
+    }
+  } catch (error) {
+    console.error("Student profile save error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to save student profile"
+    });
   }
 });
 
@@ -625,6 +632,7 @@ app.post("/api/student/login", async (req, res) => {
     });
   }
 });
+
 // Student Signup (Simplified with Role set)
 app.post("/api/student/signup", async (req, res) => {
   try {
@@ -811,7 +819,6 @@ app.get("/api/admin/verification-requests", async (req, res) => {
 });
 
 // Find teachers by location and subjects
-// Find teachers by location and subjects
 app.post("/api/student/find-teachers", async (req, res) => {
   try {
     const { latitude, longitude, subjects, maxDistance = 10000 } = req.body;
@@ -944,6 +951,7 @@ app.get("/api/admin/teacher-details/:email", async (req, res) => {
     });
   }
 });
+
 // Fetch all pending student verification requests
 app.get("/api/admin/student-verification-requests", async (req, res) => {
   try {
@@ -1014,6 +1022,7 @@ app.post("/api/admin/verify-student", async (req, res) => {
     res.status(500).json({ success: false, error: "Server error" });
   }
 });
+
 // Get student details for admin
 app.get("/api/admin/student-details/:email", async (req, res) => {
   try {
@@ -1229,5 +1238,161 @@ app.get("/api/admin/verification-log", async (req, res) => {
       success: false,
       error: "Failed to fetch verification log"
     });
+  }
+});
+
+// Fetch Student Location for Find Tutors
+app.get("/api/student/location", checkAuth, async (req, res) => {
+  try {
+    const email = req.user.email; // From checkAuth middleware
+    const student = await db.collection("students").findOne({ userId: email });
+    if (!student || !student.location) {
+      return res.status(404).json({ success: false, error: "Student location not found" });
+    }
+    res.json({
+      success: true,
+      location: {
+        latitude: student.location.coordinates[1],
+        longitude: student.location.coordinates[0]
+      }
+    });
+  } catch (error) {
+    console.error("Error fetching student location:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Fetch Nearby Teachers for Find Tutors
+app.post("/api/student/nearby-teachers", checkAuth, async (req, res) => {
+  try {
+    const { latitude, longitude, maxDistance } = req.body; // maxDistance in meters
+    if (!latitude || !longitude) {
+      return res.status(400).json({ success: false, error: "Coordinates required" });
+    }
+
+    const query = {
+      location: {
+        $near: {
+          $geometry: { type: "Point", coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: maxDistance || 1000000 // Default to 1,000km if not provided
+        }
+      },
+      verificationStatus: "Verified" // Only verified teachers
+    };
+
+    const teachers = await db.collection("teachers")
+      .find(query)
+      .project({ userId: 1, name: 1, age: 1, phone: 1, subjects: 1, location: 1, _id: 0 })
+      .toArray();
+
+    res.json({
+      success: true,
+      teachers: teachers.map(t => ({
+        email: t.userId,
+        name: t.name,
+        age: t.age,
+        phone: t.phone,
+        subjects: t.subjects,
+        latitude: t.location.coordinates[1],
+        longitude: t.location.coordinates[0]
+      }))
+    });
+  } catch (error) {
+    console.error("Error fetching nearby teachers:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Submit Join Request for Find Tutors
+app.post("/api/student/join-teacher", checkAuth, async (req, res) => {
+  try {
+    const studentEmail = req.user.email;
+    const { teacherEmail } = req.body;
+
+    const existingRequest = await db.collection("tutor_requests").findOne({
+      studentId: studentEmail,
+      teacherId: teacherEmail,
+      status: "Pending"
+    });
+    if (existingRequest) {
+      return res.status(400).json({ success: false, error: "Request already pending" });
+    }
+
+    await db.collection("tutor_requests").insertOne({
+      studentId: studentEmail,
+      teacherId: teacherEmail,
+      status: "Pending",
+      createdAt: new Date()
+    });
+
+    res.json({ success: true, message: "Join request sent" });
+  } catch (error) {
+    console.error("Error submitting join request:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Accept Join Request for Find Tutors
+app.post("/api/teacher/accept-request", checkAuth, async (req, res) => {
+  try {
+    const teacherEmail = req.user.email;
+    const { studentEmail } = req.body;
+
+    const request = await db.collection("tutor_requests").findOneAndUpdate(
+      { studentId: studentEmail, teacherId: teacherEmail, status: "Pending" },
+      { $set: { status: "Accepted", acceptedAt: new Date() } },
+      { returnDocument: "after" }
+    );
+
+    if (!request.value) {
+      return res.status(404).json({ success: false, error: "Request not found or already processed" });
+    }
+
+    // Add student to teacher's students array
+    await db.collection("teachers").updateOne(
+      { userId: teacherEmail },
+      { $addToSet: { students: studentEmail } }
+    );
+
+    // Add teacher to student's tutors array
+    await db.collection("students").updateOne(
+      { userId: studentEmail },
+      { $addToSet: { tutors: teacherEmail } }
+    );
+
+    res.json({ success: true, message: "Request accepted" });
+  } catch (error) {
+    console.error("Error accepting join request:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Fetch Teacher's Students for Dashboard
+app.get("/api/teacher/students", checkAuth, async (req, res) => {
+  try {
+    const teacherEmail = req.user.email;
+    const teacher = await db.collection("teachers").findOne({ userId: teacherEmail });
+    const students = await db.collection("students")
+      .find({ userId: { $in: teacher.students || [] } })
+      .toArray();
+    res.json({ success: true, students });
+  } catch (error) {
+    console.error("Error fetching students:", error);
+    res.status(500).json({ success: false, error: "Server error" });
+  }
+});
+
+// Fetch Student's Tutors for Dashboard
+app.get("/api/student/tutors", checkAuth, async (req, res) => {
+  try {
+    const studentEmail = req.user.email;
+    const student = await db.collection("students").findOne({ userId: studentEmail });
+    const tutors = await db.collection("teachers")
+      .find({ userId: { $in: student.tutors || [] } })
+      .toArray();
+    res.json({ success: true, tutors });
+  } catch (error) {
+    console.error("Error fetching tutors:", error);
+    res.status(500).json({ success: false, error: "Server error" });
   }
 });

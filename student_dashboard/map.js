@@ -46,8 +46,8 @@ async function initMap() {
         studentMarker = L.marker([latitude, longitude]).addTo(map);
         studentMarker.bindPopup('Your Location').openPopup();
 
-        // Load teachers within 2km by default
-        loadTeachers(2000);
+        // Load teachers within 500m by default (allowed radii: 500m, 5km, 10km)
+        loadTeachers(500);
     } catch (error) {
         console.error('Error initializing map:', error);
         alert('Failed to load map. Please try again.');
@@ -70,11 +70,19 @@ async function loadTeachers(range) {
         const subjects = studentData.subjects || [];
         const email = localStorage.getItem('userEmail');
 
+        // Only allow specific radius values: 500m, 5km, or 10km (in meters)
+        let maxDistance;
+        if (range === 500 || range === 5000 || range === 10000) {
+            maxDistance = range;
+        } else {
+            maxDistance = 5000; // default to 5km if an invalid value is provided
+        }
+
         const body = {
             latitude,
             longitude,
             subjects,
-            maxDistance: range === 'all' ? 1000000 : range
+            maxDistance
         };
         const teachersResponse = await fetch('http://localhost:5000/api/student/find-teachers', {
             method: 'POST',
@@ -89,7 +97,7 @@ async function loadTeachers(range) {
         const teachers = data.teachers || [];
 
         if (teachers.length === 0) {
-            mapMessage.textContent = 'No teachers found within the selected range.';
+            mapMessage.textContent = 'No registered teachers found within the selected range.';
             mapMessage.style.display = 'block';
             return;
         }
