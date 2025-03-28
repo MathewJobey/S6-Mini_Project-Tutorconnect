@@ -811,6 +811,7 @@ app.get("/api/admin/verification-requests", async (req, res) => {
 });
 
 // Find teachers by location and subjects
+// Find teachers by location and subjects
 app.post("/api/student/find-teachers", async (req, res) => {
   try {
     const { latitude, longitude, subjects, maxDistance = 10000 } = req.body;
@@ -841,7 +842,7 @@ app.post("/api/student/find-teachers", async (req, res) => {
       query.subjects = { $in: subjects };
     }
 
-    // Find teachers
+    // Find teachers and include required fields
     const teachers = await db.collection("teachers")
       .find(query)
       .project({
@@ -850,6 +851,9 @@ app.post("/api/student/find-teachers", async (req, res) => {
         subjects: 1,
         experience: 1,
         location: 1,
+        age: 1, // Include age
+        phone: 1, // Include phone
+        email: 1, // Include email (userId is already the email, but we'll include it explicitly)
         _id: 0
       })
       .toArray();

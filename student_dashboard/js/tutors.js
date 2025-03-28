@@ -70,27 +70,23 @@ function updateCoursesUI(courses) {
         `)
         .join('');
 
-    // Animate course cards with a slight delay per card
     const cards = grid.querySelectorAll('.course-card');
     cards.forEach((card, index) => {
         card.style.animationDelay = `${index * 0.1}s`;
         card.classList.add('animate-in');
     });
 
-    // Update stats
     const stats = {
         totalCourses: courses.length,
         activeCourses: courses.filter(c => c.active).length,
         totalHours: courses.reduce((acc, c) => acc + (c.hoursSpent || 0), 0)
     };
     
-    // Update totalCourses stat
     const totalCoursesElement = document.getElementById('totalCourses');
     if (totalCoursesElement) {
         animateNumber(totalCoursesElement, 0, stats.totalCourses);
     }
 
-    // Update totalHours stat
     const totalHoursElement = document.getElementById('totalHours');
     if (totalHoursElement) {
         animateNumber(totalHoursElement, 0, stats.totalHours);
@@ -116,11 +112,13 @@ function getCourseIcon(subject) {
 }
 
 function openCourseFinder() {
-    // Redirect to course finder page
     window.location.href = 'course_finder.html';
 }
 
 function openCourse(courseId) {
-    // Redirect to course details page
     window.location.href = `course_detail.html?id=${courseId}`;
+}
+
+function openTutorFinder() {
+    window.location.href = 'map.html';
 }
